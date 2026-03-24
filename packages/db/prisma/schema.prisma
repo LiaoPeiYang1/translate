@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  employee
+  hr
+  management
+}
+
+enum LeaveStatus {
+  pending
+  approved
+  rejected
+  cancelled
+}
+
+enum ExpenseStatus {
+  pending
+  approved
+  rejected
+  reimbursed
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role
+  phone        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  leaveRequests  LeaveRequest[]
+  expenseReports ExpenseReport[]
+  sessions       Session[]
+  knowledgeDocs  KnowledgeDoc[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
+model LeaveRequest {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id])
+  type      String
+  from      DateTime
+  to        DateTime
+  days      Float
+  reason    String?
+  status    LeaveStatus  @default(pending)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  rejectionReason String?
+}
+
+model ExpenseReport {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id])
+  amount    Float
+  currency  String        @default("CNY")
+  category  String
+  date      DateTime
+  memo      String?
+  status    ExpenseStatus @default(pending)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  rejectionReason String?
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  department String?
+  title      String?
+  seat       String?
+  salary     Float?
+  managerId  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model KnowledgeDoc {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  name       String
+  size       Int
+  status     String   @default("processing")
+  failReason String?
+  uploadedAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  targetId  String?
+  createdAt DateTime @default(now())
+}

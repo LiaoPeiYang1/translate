@@ -1,0 +1,11 @@
+{
+  "name": "super-employee",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev": "pnpm -r --filter @app/gateway dev",
+    "dev:frontend": "pnpm --filter @app/frontend dev"
+  }
+}

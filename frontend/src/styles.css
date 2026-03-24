@@ -1,0 +1,246 @@
+:root {
+  --bg: #0f172a;
+  --panel: #111827;
+  --card: #131c2f;
+  --border: #1f2937;
+  --accent: #5dd8ff;
+  --accent-strong: #4ade80;
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+  --danger: #f87171;
+  --radius: 14px;
+  --shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  font-family: 'Space Grotesk', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: radial-gradient(circle at 20% 20%, rgba(93, 216, 255, 0.08), transparent 30%),
+    radial-gradient(circle at 80% 10%, rgba(74, 222, 128, 0.1), transparent 32%),
+    #0b1222;
+  color: var(--text);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--accent);
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  padding: 20px;
+  border-right: 1px solid var(--border);
+  background: linear-gradient(160deg, rgba(17, 24, 39, 0.9), rgba(17, 24, 39, 0.6));
+  backdrop-filter: blur(8px);
+}
+
+.brand {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+
+.nav-button {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: border 0.2s, transform 0.2s;
+}
+
+.nav-button:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 20px;
+}
+
+.chat-feed {
+  padding: 0 12px 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+.bubble {
+  max-width: 720px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.bubble.user {
+  align-self: flex-end;
+  background: linear-gradient(120deg, rgba(93, 216, 255, 0.12), rgba(74, 222, 128, 0.12));
+  border-color: rgba(93, 216, 255, 0.4);
+}
+
+.bubble.ai {
+  align-self: flex-start;
+  background: var(--card);
+}
+
+.input-panel {
+  padding: 14px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  border-radius: var(--radius);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  box-shadow: var(--shadow);
+}
+
+.input-area {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: #0b1222;
+  color: var(--text);
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 15px;
+  resize: none;
+  min-height: 60px;
+}
+
+.chip-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 6px 0 4px;
+}
+
+.chip {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.chip.bypassed {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.send-btn {
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--accent);
+  background: linear-gradient(120deg, rgba(93, 216, 255, 0.18), rgba(93, 216, 255, 0.32));
+  color: #e8f8ff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.card {
+  border: 1px solid var(--border);
+  background: #0d1625;
+  border-radius: 16px;
+  padding: 14px;
+  margin-top: 10px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.pill {
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  color: #0b1222;
+  background: var(--accent);
+}
+
+.confirm-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.btn {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.btn.primary {
+  border-color: var(--accent);
+  background: linear-gradient(120deg, rgba(93, 216, 255, 0.24), rgba(93, 216, 255, 0.4));
+  color: #0b1222;
+  font-weight: 600;
+}
+
+.btn.danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.field label {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.field input,
+.field select,
+.field textarea {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #0b1222;
+  color: var(--text);
+}
+
+.status-tag {
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #0b1222;
+}
+
+.status-pending { background: #fbbf24; }
+.status-approved { background: #4ade80; }
+.status-rejected { background: #f87171; }
+.status-cancelled { background: #94a3b8; }
