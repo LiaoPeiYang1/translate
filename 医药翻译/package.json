@@ -1,0 +1,10 @@
+{
+  "name": "medical-translate",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "frontend:dev": "npm --prefix frontend run dev",
+    "frontend:build": "npm --prefix frontend run build",
+    "backend:dev": "python3 -m uvicorn app.main:app --reload --app-dir backend --port 8000"
+  }
+}
