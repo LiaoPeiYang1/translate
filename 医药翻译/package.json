@@ -5,6 +5,8 @@
   "scripts": {
     "frontend:dev": "npm --prefix frontend run dev",
     "frontend:build": "npm --prefix frontend run build",
-    "backend:dev": "python3 -m uvicorn app.main:app --reload --app-dir backend --port 8000"
+    "backend:dev": "python3 -m uvicorn app.main:app --reload --app-dir backend --port 8000",
+    "backend:check": "python3 -m py_compile backend/app/main.py",
+    "ci:check": "npm run frontend:build && npm run backend:check"
   }
 }

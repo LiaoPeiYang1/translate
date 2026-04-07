@@ -72,7 +72,68 @@ uvicorn app.main:app --reload --port 8000
 npm run frontend:dev
 npm run frontend:build
 npm run backend:dev
+npm run backend:check
+npm run ci:check
 ```
+
+## CI/CD
+
+- `CI`：位于 `.github/workflows/ci.yml`
+- 触发方式：提交到 `main`、`codex/**`、`feature/**`、`fix/**` 分支，或发起 Pull Request
+- 执行内容：前端 `npm ci && npm run build`，后端依赖安装、`py_compile` 校验，以及 `/health` 启动探活
+
+- `CD`：位于 `.github/workflows/cd.yml`
+- 触发方式：推送到 `main`，或在 GitHub Actions 页面手动 `Run workflow`
+- 交付内容：自动构建并发布两个 Docker 镜像到 GitHub Container Registry
+  - `ghcr.io/<你的 GitHub 用户名>/translate-backend`
+  - `ghcr.io/<你的 GitHub 用户名>/translate-frontend`
+- 部署方式：当仓库中配置了服务器 Secrets 后，`main` 分支或手动触发都会自动 SSH 到目标服务器并执行 `docker compose` 滚动更新
+- 首次部署说明：对阿里云 Linux 3 服务器，工作流会自动使用阿里云镜像源安装 Docker 与 Compose 插件
+
+### GitHub 仓库设置
+
+1. 打开仓库 `Settings > Actions > General`
+2. 确认 `Workflow permissions` 允许工作流读写 packages
+3. 如需让前端镜像内置生产 API 地址，在仓库 `Settings > Secrets and variables > Actions` 中添加变量 `VITE_API_BASE_URL`
+4. 如果不配置 `VITE_API_BASE_URL`，前端 Docker 镜像会默认使用 `/api`
+
+### GitHub Actions Secrets
+
+在仓库 `Settings > Secrets and variables > Actions` 中添加这些 Secrets：
+
+- `DEPLOY_HOST`
+- `DEPLOY_USER`
+- `DEPLOY_PASSWORD`
+- `PROD_JWT_SECRET`
+- `PROD_FEISHU_APP_ID`
+- `PROD_FEISHU_APP_SECRET`
+- `PROD_FEISHU_REDIRECT_URI`
+
+其中飞书相关可先留空，但如果生产环境要启用飞书登录，建议一并配置。
+
+### GitHub Actions Variables
+
+在同一页面添加这些 Variables：
+
+- `DEPLOY_APP_DIR`
+  - 默认建议：`/opt/medical-translate`
+- `FRONTEND_BASE_URL`
+  - 例如：`http://101.133.135.222`
+- `PROD_FEISHU_SCOPE`
+  - 默认：`contact:user.base:readonly contact:user.email:readonly`
+- `VITE_API_BASE_URL`
+  - 默认建议：`/api`
+
+### 生产访问地址
+
+- 页面入口：`http://101.133.135.222`
+- 健康检查：`http://101.133.135.222/health`
+
+### 容器构建文件
+
+- 后端镜像：`backend/Dockerfile`
+- 前端镜像：`frontend/Dockerfile`
+- 前端静态服务配置：`frontend/nginx.conf`
 
 ## 说明
 

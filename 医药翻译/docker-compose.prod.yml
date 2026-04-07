@@ -1,0 +1,16 @@
+services:
+  backend:
+    image: ${BACKEND_IMAGE:?BACKEND_IMAGE is required}
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    expose:
+      - "8000"
+
+  frontend:
+    image: ${FRONTEND_IMAGE:?FRONTEND_IMAGE is required}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
