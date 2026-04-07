@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - codex/medical-translate-feishu-sso
   workflow_dispatch:
 
 permissions:
@@ -90,7 +91,7 @@ jobs:
   deploy-production:
     name: Deploy To Server
     needs: publish-images
-    if: ${{ (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') && secrets.DEPLOY_HOST != '' && secrets.DEPLOY_USER != '' && secrets.DEPLOY_PASSWORD != '' }}
+    if: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/codex/medical-translate-feishu-sso' || github.event_name == 'workflow_dispatch') && secrets.DEPLOY_HOST != '' && secrets.DEPLOY_USER != '' && secrets.DEPLOY_PASSWORD != '' }}
     runs-on: ubuntu-latest
 
     steps:
