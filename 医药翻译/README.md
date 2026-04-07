@@ -63,8 +63,10 @@ uvicorn app.main:app --reload --port 8000
 
 1. 复制 `backend/.env.example` 为 `backend/.env`
 2. 填写 `FEISHU_APP_ID` 与 `FEISHU_APP_SECRET`
-3. 在飞书开放平台应用中把回调地址配置为 `FEISHU_REDIRECT_URI`
-4. 本地默认回调为 `http://127.0.0.1:8000/api/auth/feishu/callback`
+3. 按当前前端实际访问地址填写 `FRONTEND_BASE_URL` 与 `ALLOWED_ORIGINS`
+4. 在飞书开放平台应用中把回调地址配置为 `FEISHU_REDIRECT_URI`
+5. 本地默认回调为 `http://127.0.0.1:8000/api/auth/feishu/callback`
+6. 如果你的前端不是跑在 `5173`，记得把 `backend/.env` 里的端口同步改掉，否则飞书登录成功后会跳回错误地址
 
 ### 根目录便捷脚本
 

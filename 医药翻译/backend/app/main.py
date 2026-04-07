@@ -7,7 +7,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Literal, Optional
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 from uuid import uuid4
 from xml.sax.saxutils import escape
@@ -154,7 +154,7 @@ history_store: list[HistoryItem] = []
 uploaded_files: dict[str, dict] = {}
 generated_files: dict[str, dict] = {}
 file_tasks: dict[str, dict] = {}
-feishu_login_states: dict[str, float] = {}
+feishu_login_states: dict[str, dict[str, object]] = {}
 
 
 def now_label() -> str:
@@ -341,14 +341,57 @@ def require_feishu_config() -> None:
 
 def prune_feishu_login_states() -> None:
     now = time.time()
-    expired_states = [state for state, expires_at in feishu_login_states.items() if expires_at <= now]
+    expired_states = [
+        state
+        for state, state_data in feishu_login_states.items()
+        if float(state_data.get("expires_at", 0)) <= now
+    ]
     for state in expired_states:
         feishu_login_states.pop(state, None)
 
 
-def build_frontend_redirect_url(params: dict[str, str]) -> str:
+def sanitize_frontend_redirect_path(redirect_path: Optional[str]) -> str:
+    if not redirect_path:
+        return "/"
+    parsed = urlsplit(redirect_path)
+    if parsed.scheme or parsed.netloc:
+        return "/"
+    safe_path = parsed.path or "/"
+    if not safe_path.startswith("/") or safe_path.startswith("//"):
+        return "/"
+    return urlunsplit(("", "", safe_path, parsed.query, parsed.fragment))
+
+
+def resolve_frontend_base_url(frontend_base_url: Optional[str]) -> str:
+    default_base_url = FRONTEND_BASE_URL.rstrip("/")
+    if not frontend_base_url:
+        return default_base_url
+    normalized_candidate = frontend_base_url.rstrip("/")
+    allowed_base_urls = {origin.rstrip("/") for origin in ALLOWED_ORIGINS}
+    return normalized_candidate if normalized_candidate in allowed_base_urls else default_base_url
+
+
+def build_frontend_redirect_url(
+    params: dict[str, str],
+    redirect_path: Optional[str] = None,
+    frontend_base_url: Optional[str] = None,
+) -> str:
     sanitized = {key: value for key, value in params.items() if value}
-    return f"{FRONTEND_BASE_URL.rstrip('/')}/?{urlencode(sanitized)}"
+    safe_redirect = sanitize_frontend_redirect_path(redirect_path)
+    parsed_redirect = urlsplit(safe_redirect)
+    merged_query = dict(parse_qsl(parsed_redirect.query, keep_blank_values=True))
+    merged_query.update(sanitized)
+    query = urlencode(merged_query)
+    base_url_parts = urlsplit(resolve_frontend_base_url(frontend_base_url))
+    return urlunsplit(
+        (
+            base_url_parts.scheme,
+            base_url_parts.netloc,
+            parsed_redirect.path or "/",
+            query,
+            parsed_redirect.fragment,
+        )
+    )
 
 
 def request_json(url: str, method: str = "GET", payload: Optional[dict] = None, headers: Optional[dict] = None) -> dict:
@@ -459,8 +502,25 @@ def logout() -> Response:
     return Response(status_code=204)
 
 
+@app.get("/api/auth/feishu/status")
+def feishu_status() -> dict:
+    enabled = bool(FEISHU_APP_ID and FEISHU_APP_SECRET)
+    return {
+        "data": {
+            "enabled": enabled,
+            "redirect_uri": FEISHU_REDIRECT_URI,
+            "scope": FEISHU_SCOPE,
+        }
+    }
+
+
 @app.get("/api/auth/feishu/login")
-def feishu_login() -> RedirectResponse:
+def feishu_login(
+    redirect: Optional[str] = Query(default="/"),
+    origin: Optional[str] = Query(default=None),
+) -> RedirectResponse:
+    redirect_path = sanitize_frontend_redirect_path(redirect)
+    frontend_base_url = resolve_frontend_base_url(origin)
     try:
         require_feishu_config()
     except HTTPException as exc:
@@ -470,13 +530,19 @@ def feishu_login() -> RedirectResponse:
                     "login": "error",
                     "provider": "feishu",
                     "message": str(exc.detail),
-                }
+                },
+                redirect_path,
+                frontend_base_url,
             ),
             status_code=302,
         )
     prune_feishu_login_states()
     state = secrets.token_urlsafe(24)
-    feishu_login_states[state] = time.time() + FEISHU_LOGIN_STATE_TTL_SECONDS
+    feishu_login_states[state] = {
+        "expires_at": time.time() + FEISHU_LOGIN_STATE_TTL_SECONDS,
+        "redirect_path": redirect_path,
+        "frontend_base_url": frontend_base_url,
+    }
     query = {
         "response_type": "code",
         "redirect_uri": FEISHU_REDIRECT_URI,
@@ -496,14 +562,27 @@ def feishu_callback(
     error: Optional[str] = None,
     error_description: Optional[str] = None,
 ) -> RedirectResponse:
+    redirect_path = "/"
+    frontend_base_url = FRONTEND_BASE_URL
+    if state:
+        prune_feishu_login_states()
+        state_data = feishu_login_states.get(state)
+        if state_data:
+            redirect_path = str(state_data.get("redirect_path") or "/")
+            frontend_base_url = resolve_frontend_base_url(str(state_data.get("frontend_base_url") or ""))
+
     if error:
+        if state:
+            feishu_login_states.pop(state, None)
         return RedirectResponse(
             url=build_frontend_redirect_url(
                 {
                     "login": "error",
                     "provider": "feishu",
                     "message": error_description or error,
-                }
+                },
+                redirect_path,
+                frontend_base_url,
             ),
             status_code=302,
         )
@@ -514,8 +593,12 @@ def feishu_callback(
         if not code or not state:
             raise HTTPException(status_code=400, detail="飞书回调缺少必要参数。")
 
-        expires_at = feishu_login_states.pop(state, None)
-        if not expires_at or expires_at <= time.time():
+        state_data = feishu_login_states.pop(state, None)
+        if state_data:
+            redirect_path = str(state_data.get("redirect_path") or redirect_path)
+            frontend_base_url = resolve_frontend_base_url(str(state_data.get("frontend_base_url") or ""))
+        expires_at = float(state_data.get("expires_at", 0)) if state_data else 0
+        if not state_data or expires_at <= time.time():
             raise HTTPException(status_code=400, detail="飞书登录状态已失效，请重新发起登录。")
 
         token_data = exchange_feishu_code(code)
@@ -531,7 +614,9 @@ def feishu_callback(
                     "login": "error",
                     "provider": "feishu",
                     "message": str(exc.detail),
-                }
+                },
+                redirect_path,
+                frontend_base_url,
             ),
             status_code=302,
         )
@@ -547,7 +632,10 @@ def feishu_callback(
         "union_id": str(user_data.get("union_id") or ""),
         "user_id": str(user_data.get("user_id") or ""),
     }
-    return RedirectResponse(url=build_frontend_redirect_url(redirect_params), status_code=302)
+    return RedirectResponse(
+        url=build_frontend_redirect_url(redirect_params, redirect_path, frontend_base_url),
+        status_code=302,
+    )
 
 
 @app.post("/api/detect")

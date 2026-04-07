@@ -56,6 +56,21 @@ export async function refreshSession(refreshToken?: string | null) {
   } as AuthTokens
 }
 
+export async function getFeishuSsoStatus() {
+  const response = await request<ApiEnvelope<{ enabled: boolean; redirect_uri: string; scope: string }>>(
+    '/api/auth/feishu/status',
+    {
+      skipAuth: true,
+    },
+  )
+
+  return {
+    enabled: Boolean(response.data.enabled),
+    redirectUri: response.data.redirect_uri,
+    scope: response.data.scope,
+  }
+}
+
 export async function logoutRequest() {
   await request<void>('/api/auth/logout', {
     method: 'POST',

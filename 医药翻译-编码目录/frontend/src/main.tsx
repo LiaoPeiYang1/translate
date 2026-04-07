@@ -5,7 +5,7 @@ import zhCN from 'antd/locale/zh_CN'
 import { RouterProvider } from 'react-router-dom'
 import { Toaster } from 'sonner'
 
-import { GlobalErrorBoundary } from '@/components/error-boundary'
+import { GlobalErrorBoundary } from '@/components/error-boundary/index'
 import { router } from '@/router'
 
 import 'antd/dist/reset.css'

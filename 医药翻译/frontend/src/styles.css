@@ -99,6 +99,12 @@ button:disabled {
   color: var(--muted);
 }
 
+.login-sso-note {
+  margin: 0;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
 .full-width {
   width: 100%;
 }
@@ -279,6 +285,7 @@ button:disabled {
   background: rgba(255, 250, 243, 0.88);
   display: grid;
   gap: 14px;
+  position: relative;
 }
 
 .sidebar-status-card strong {
@@ -298,9 +305,44 @@ button:disabled {
   gap: 12px;
 }
 
-.sidebar-user-head span {
+.sidebar-user-head span,
+.sidebar-user-copy span,
+.sidebar-user-menu-copy span {
   color: var(--muted);
   font-size: 12px;
+}
+
+.sidebar-user-trigger {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  text-align: left;
+}
+
+.sidebar-user-copy {
+  min-width: 0;
+}
+
+.sidebar-user-copy strong,
+.sidebar-user-menu-copy strong {
+  display: block;
+}
+
+.sidebar-user-caret {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1;
+  transition: transform 160ms ease;
+}
+
+.sidebar-user-caret.open {
+  transform: rotate(180deg);
 }
 
 .user-avatar,
@@ -324,25 +366,33 @@ button:disabled {
   font-weight: 700;
 }
 
-.sidebar-user-grid {
+.sidebar-user-menu {
   display: grid;
   gap: 10px;
+  margin-top: -2px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(76, 56, 38, 0.08);
 }
 
-.sidebar-user-grid div {
+.sidebar-user-menu-copy,
+.sidebar-user-menu-button {
   padding: 12px 14px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(76, 56, 38, 0.08);
 }
 
-.sidebar-user-grid span,
+.sidebar-user-menu-button {
+  text-align: left;
+  color: var(--brand-deep);
+}
+
 .auth-error {
   color: var(--muted);
   font-size: 12px;
 }
 
-.sidebar-user-grid strong {
+.sidebar-user-menu-copy strong {
   margin-top: 6px;
   word-break: break-word;
 }

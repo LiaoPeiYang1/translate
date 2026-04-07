@@ -65,6 +65,8 @@ pre {
   border-right: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.84);
   backdrop-filter: blur(18px);
+  min-height: 0;
+  overflow: hidden;
 }
 
 .sidebar-search {
@@ -76,6 +78,8 @@ pre {
   min-height: 0;
   flex: 1;
   display: flex;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .history-list,
@@ -87,8 +91,7 @@ pre {
   display: grid;
   align-content: start;
   gap: 16px;
-  overflow-y: auto;
-  padding-right: 4px;
+  min-height: min-content;
 }
 
 .history-group {
@@ -237,6 +240,53 @@ pre {
   padding-top: 10px;
   border-top: 1px solid var(--line);
   color: var(--muted);
+}
+
+.history-sidebar-user-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  color: var(--text);
+}
+
+.history-sidebar-user-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.history-sidebar-user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.16);
+}
+
+.history-sidebar-user-name {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text) !important;
+  font-weight: 600;
+}
+
+.history-sidebar-user-chevron {
+  color: var(--muted);
+  flex-shrink: 0;
+  transform: rotate(180deg);
 }
 
 .status-dot {
@@ -827,12 +877,37 @@ pre {
   width: min(520px, 100%);
   position: relative;
   z-index: 1;
+  overflow: hidden;
 }
 
 .login-headline {
   display: grid;
   gap: 8px;
   margin-bottom: 18px;
+}
+
+.login-brand-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+  box-shadow: 0 16px 30px rgba(37, 99, 235, 0.22);
+}
+
+.login-brand-mark span {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.login-title.ant-typography {
+  margin-bottom: 0 !important;
+  color: #0f172a;
 }
 
 .login-highlight {
@@ -842,15 +917,97 @@ pre {
   background: rgba(37, 99, 235, 0.06);
 }
 
-.login-highlight > div {
+.login-highlight > div,
+.login-highlight-sso {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
+.login-highlight-sso {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.login-highlight-sso.is-ready {
+  cursor: pointer;
+  color: var(--brand-deep);
+}
+
+.login-highlight-sso.is-disabled {
+  cursor: not-allowed;
+  color: var(--muted);
+}
+
 .login-actions {
   display: grid;
   gap: 12px;
+}
+
+.login-form-shell .ant-form-item-label > label {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.login-form-shell .ant-input-affix-wrapper,
+.login-form-shell .ant-input {
+  color: #0f172a !important;
+  border-color: rgba(37, 99, 235, 0.18) !important;
+  background: rgba(239, 246, 255, 0.72) !important;
+  box-shadow: none !important;
+}
+
+.login-form-shell .ant-input-prefix,
+.login-form-shell .ant-input-password-icon {
+  color: var(--brand) !important;
+}
+
+.login-form-shell .ant-input-affix-wrapper:hover,
+.login-form-shell .ant-input:hover,
+.login-form-shell .ant-input-affix-wrapper:focus,
+.login-form-shell .ant-input:focus,
+.login-form-shell .ant-input-affix-wrapper-focused {
+  border-color: rgba(37, 99, 235, 0.44) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08) !important;
+}
+
+.login-primary-button.ant-btn-primary {
+  height: 46px;
+  font-weight: 700;
+  border: 0;
+  background: linear-gradient(135deg, var(--brand), var(--brand-deep)) !important;
+  box-shadow: 0 18px 32px rgba(37, 99, 235, 0.22) !important;
+}
+
+.login-sso-section {
+  display: grid;
+  gap: 10px;
+}
+
+.login-sso-caption {
+  display: block;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.login-sso-button.ant-btn {
+  height: 46px;
+  color: #0f172a !important;
+  font-weight: 700;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.88)) !important;
+  box-shadow: none !important;
+}
+
+.login-sso-button.ant-btn:hover {
+  color: var(--brand-deep) !important;
+  border-color: rgba(37, 99, 235, 0.28) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 1), rgba(219, 234, 254, 0.92)) !important;
 }
 
 .history-sidebar .ant-input,

@@ -1,7 +1,10 @@
-import { Button, Empty, Modal, Spin, Typography } from 'antd'
+import { Button, Dropdown, Empty, Modal, Spin, Typography } from 'antd'
+import type { MenuProps } from 'antd'
+import { ChevronUp, LogOut } from 'lucide-react'
 
 import HistorySearch from '@/components/history-sidebar/history-search'
 import HistoryItemCard from '@/components/history-sidebar/history-item'
+import { useAuthStore } from '@/store/auth'
 import type { HistoryFilter, HistoryItem } from '@/types'
 
 type HistorySidebarProps = {
@@ -30,6 +33,8 @@ export default function HistorySidebar(props: HistorySidebarProps) {
     onDelete,
     onNewTranslation,
   } = props
+  const userInfo = useAuthStore((state) => state.userInfo)
+  const logout = useAuthStore((state) => state.logout)
 
   const confirmDelete = (item: HistoryItem) => {
     Modal.confirm({
@@ -46,6 +51,14 @@ export default function HistorySidebar(props: HistorySidebarProps) {
     { key: 'text', label: '文本翻译', items: items.filter((item) => item.taskType === 'text') },
     { key: 'file', label: '文件翻译', items: items.filter((item) => item.taskType === 'file') },
   ].filter((group) => group.items.length > 0)
+
+  const userMenuItems: MenuProps['items'] = [
+    {
+      key: 'logout',
+      label: '退出登录',
+      icon: <LogOut size={14} />,
+    },
+  ]
 
   return (
     <aside className="history-sidebar">
@@ -90,10 +103,35 @@ export default function HistorySidebar(props: HistorySidebarProps) {
         )}
       </div>
 
-      <div className="history-sidebar-footer">
-        <span className="status-dot" />
-        <Typography.Text>AI 翻译系统已就绪</Typography.Text>
-      </div>
+      {userInfo ? (
+        <Dropdown
+          trigger={['click']}
+          placement="topLeft"
+          menu={{
+            items: userMenuItems,
+            onClick: ({ key }) => {
+              if (key === 'logout') {
+                void logout()
+              }
+            },
+          }}
+        >
+          <button type="button" className="history-sidebar-user-trigger">
+            <div className="history-sidebar-user-main">
+              <div className="history-sidebar-user-avatar">
+                {userInfo.name.slice(0, 1).toUpperCase()}
+              </div>
+              <Typography.Text className="history-sidebar-user-name">{userInfo.name}</Typography.Text>
+            </div>
+            <ChevronUp size={16} className="history-sidebar-user-chevron" />
+          </button>
+        </Dropdown>
+      ) : (
+        <div className="history-sidebar-footer">
+          <span className="status-dot" />
+          <Typography.Text>AI 翻译系统已就绪</Typography.Text>
+        </div>
+      )}
     </aside>
   )
 }
