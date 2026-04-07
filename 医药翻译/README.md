@@ -117,8 +117,10 @@ npm run ci:check
 
 - `DEPLOY_APP_DIR`
   - 默认建议：`/opt/medical-translate`
+- `APP_PORT`
+  - 默认建议：`8888`
 - `FRONTEND_BASE_URL`
-  - 例如：`http://101.133.135.222`
+  - 例如：`http://101.133.135.222:8888`
 - `PROD_FEISHU_SCOPE`
   - 默认：`contact:user.base:readonly contact:user.email:readonly`
 - `VITE_API_BASE_URL`
@@ -126,8 +128,8 @@ npm run ci:check
 
 ### 生产访问地址
 
-- 页面入口：`http://101.133.135.222`
-- 健康检查：`http://101.133.135.222/health`
+- 页面入口：`http://101.133.135.222:8888`
+- 健康检查：`http://101.133.135.222:8888/health`
 
 ### 容器构建文件
 

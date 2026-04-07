@@ -13,4 +13,4 @@ services:
     depends_on:
       - backend
     ports:
-      - "80:80"
+      - "${APP_PORT:-8888}:80"

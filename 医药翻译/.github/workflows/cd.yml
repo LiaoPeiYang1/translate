@@ -113,6 +113,7 @@ jobs:
         env:
           DEPLOY_APP_DIR: ${{ vars.DEPLOY_APP_DIR || '/opt/medical-translate' }}
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          APP_PORT: ${{ vars.APP_PORT || '8888' }}
           BACKEND_IMAGE: ${{ needs.publish-images.outputs.backend_image_ref }}
           FRONTEND_IMAGE: ${{ needs.publish-images.outputs.frontend_image_ref }}
           GHCR_USERNAME: ${{ github.actor }}
@@ -127,7 +128,7 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           password: ${{ secrets.DEPLOY_PASSWORD }}
-          envs: DEPLOY_APP_DIR,DEPLOY_HOST,BACKEND_IMAGE,FRONTEND_IMAGE,GHCR_USERNAME,GHCR_TOKEN,FRONTEND_BASE_URL,PROD_JWT_SECRET,PROD_FEISHU_APP_ID,PROD_FEISHU_APP_SECRET,PROD_FEISHU_REDIRECT_URI,PROD_FEISHU_SCOPE
+          envs: DEPLOY_APP_DIR,DEPLOY_HOST,APP_PORT,BACKEND_IMAGE,FRONTEND_IMAGE,GHCR_USERNAME,GHCR_TOKEN,FRONTEND_BASE_URL,PROD_JWT_SECRET,PROD_FEISHU_APP_ID,PROD_FEISHU_APP_SECRET,PROD_FEISHU_REDIRECT_URI,PROD_FEISHU_SCOPE
           script_stop: true
           script: |
             set -eu
@@ -150,7 +151,8 @@ jobs:
             fi
 
             DEPLOY_DIR="${DEPLOY_APP_DIR}"
-            FRONTEND_URL="${FRONTEND_BASE_URL:-http://${DEPLOY_HOST}}"
+            EXTERNAL_PORT="${APP_PORT:-8888}"
+            FRONTEND_URL="${FRONTEND_BASE_URL:-http://${DEPLOY_HOST}:${EXTERNAL_PORT}}"
             JWT_SECRET_VALUE="${PROD_JWT_SECRET:-dev-secret}"
             FEISHU_SCOPE_VALUE="${PROD_FEISHU_SCOPE:-contact:user.base:readonly contact:user.email:readonly}"
             FEISHU_REDIRECT_VALUE="${PROD_FEISHU_REDIRECT_URI:-${FRONTEND_URL}/api/auth/feishu/callback}"
@@ -168,6 +170,7 @@ jobs:
             EOF
 
             cat > "${DEPLOY_DIR}/.env.deploy" <<EOF
+            APP_PORT=${EXTERNAL_PORT}
             BACKEND_IMAGE=${BACKEND_IMAGE}
             FRONTEND_IMAGE=${FRONTEND_IMAGE}
             EOF
