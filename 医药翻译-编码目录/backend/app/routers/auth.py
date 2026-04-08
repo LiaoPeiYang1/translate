@@ -73,6 +73,27 @@ def build_frontend_redirect_url(
     )
 
 
+def build_frontend_login_redirect_url(
+    params: dict[str, str],
+    *,
+    redirect_path: str | None = None,
+    frontend_base_url: str | None = None,
+) -> str:
+    safe_redirect = sanitize_frontend_redirect_path(redirect_path)
+    query = {'redirect': safe_redirect}
+    query.update({key: value for key, value in params.items() if value})
+    base_url_parts = urlsplit(resolve_frontend_base_url(frontend_base_url))
+    return urlunsplit(
+        (
+            base_url_parts.scheme,
+            base_url_parts.netloc,
+            '/login',
+            urlencode(query),
+            '',
+        )
+    )
+
+
 @router.post('/login', response_model=ApiResponse[AuthResponse])
 async def login(payload: LoginRequest, session: AsyncSession = Depends(get_db_session)) -> ApiResponse[AuthResponse]:
     return ApiResponse(data=await auth_service.login(session, payload.email, payload.password))
@@ -105,7 +126,7 @@ async def feishu_login(
 
     if not auth_service.is_feishu_enabled():
         return RedirectResponse(
-            build_frontend_redirect_url(
+            build_frontend_login_redirect_url(
                 {
                     'login': 'error',
                     'provider': 'feishu',
@@ -163,7 +184,7 @@ async def feishu_callback(
         if state:
             feishu_login_states.pop(state, None)
         return RedirectResponse(
-            build_frontend_redirect_url(
+            build_frontend_login_redirect_url(
                 {
                     'login': 'error',
                     'provider': 'feishu',
@@ -177,7 +198,7 @@ async def feishu_callback(
 
     if not code or not state:
         return RedirectResponse(
-            build_frontend_redirect_url(
+            build_frontend_login_redirect_url(
                 {
                     'login': 'error',
                     'provider': 'feishu',
@@ -196,7 +217,7 @@ async def feishu_callback(
         frontend_base_url = resolve_frontend_base_url(str(state_data.get('frontend_base_url') or ''))
     if not state_data or expires_at <= time.time():
         return RedirectResponse(
-            build_frontend_redirect_url(
+            build_frontend_login_redirect_url(
                 {
                     'login': 'error',
                     'provider': 'feishu',
@@ -213,7 +234,7 @@ async def feishu_callback(
     except Exception as exc:
         message = getattr(exc, 'detail', None) or str(exc) or '飞书登录失败'
         return RedirectResponse(
-            build_frontend_redirect_url(
+            build_frontend_login_redirect_url(
                 {
                     'login': 'error',
                     'provider': 'feishu',
@@ -226,7 +247,7 @@ async def feishu_callback(
         )
 
     return RedirectResponse(
-        build_frontend_redirect_url(
+        build_frontend_login_redirect_url(
             {
                 'login': 'success',
                 'provider': 'feishu',
