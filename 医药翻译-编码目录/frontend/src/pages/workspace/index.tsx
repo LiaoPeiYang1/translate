@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react'
-import { Typography } from 'antd'
-import { Bot } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { WorkspaceErrorBoundary } from '@/components/error-boundary/index'
 import HistorySidebar from '@/components/history-sidebar/index'
 import FilePanel from '@/components/file-panel/index'
 import TextPanel from '@/components/text-panel/index'
+import WorkspaceActiveHeader from '@/pages/workspace/components/workspace-active-header'
+import WorkspaceHero from '@/pages/workspace/components/workspace-hero'
+import WorkspaceModeSwitch from '@/pages/workspace/components/workspace-mode-switch'
 import { useHistory } from '@/hooks/use-history'
 import { useFileTranslateStore } from '@/store/file-translate'
 import { useTranslateStore } from '@/store/translate'
@@ -68,51 +69,12 @@ export default function WorkspacePage() {
       <main className="workspace-shell">
         <WorkspaceErrorBoundary>
           <section className="workspace-stage">
-            {hasActiveHistory ? (
-              <div className="workspace-active-header">
-                <div className="workspace-active-title">
-                  <div className="workspace-active-icon">
-                    <Bot size={16} />
-                  </div>
-                  <div>
-                    <Typography.Title level={4}>{selectedItem?.title}</Typography.Title>
-                    <Typography.Text type="secondary">
-                      {selectedItem?.taskType === 'text' ? '文本翻译模式' : '文件翻译模式'}
-                    </Typography.Text>
-                  </div>
-                </div>
-                <div className="workspace-active-badge">
-                  {selectedItem?.taskType === 'text' ? 'Text' : 'File'}
-                </div>
-              </div>
+            {hasActiveHistory && selectedItem ? (
+              <WorkspaceActiveHeader item={selectedItem} />
             ) : (
               <>
-                <div className="workspace-hero">
-                  <div className="workspace-hero-icon">
-                    <Bot size={34} />
-                  </div>
-                  <Typography.Title level={3} className="workspace-hero-title">智能医药翻译系统</Typography.Title>
-                  <Typography.Paragraph className="workspace-hero-desc">
-                    支持文本、PDF、Word 文档翻译，完美保留原始排版。
-                  </Typography.Paragraph>
-                </div>
-
-                <div className="workspace-mode-switch">
-                  <button
-                    type="button"
-                    className={`workspace-mode-button ${mode === 'text' ? 'is-active' : ''}`}
-                    onClick={() => setMode('text')}
-                  >
-                    文本翻译
-                  </button>
-                  <button
-                    type="button"
-                    className={`workspace-mode-button ${mode === 'file' ? 'is-active' : ''}`}
-                    onClick={() => setMode('file')}
-                  >
-                    文件翻译
-                  </button>
-                </div>
+                <WorkspaceHero />
+                <WorkspaceModeSwitch mode={mode} onModeChange={setMode} />
               </>
             )}
 

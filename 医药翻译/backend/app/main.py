@@ -205,6 +205,17 @@ def build_download_lines(file_meta: dict) -> list[str]:
     ]
 
 
+def iter_history_items() -> list[HistoryItem]:
+    return [item for item in history_store if isinstance(item, HistoryItem)]
+
+
+def safe_history_title(item: HistoryItem) -> str:
+    title = getattr(item, "title", "")
+    if not title:
+        return ""
+    return title if isinstance(title, str) else str(title)
+
+
 def build_pdf_bytes(lines: list[str]) -> bytes:
     escaped_lines = [
         line.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
@@ -454,7 +465,7 @@ def fetch_feishu_user_info(access_token: str) -> dict:
 
 def upsert_history(item: HistoryItem) -> HistoryItem:
     for index, current in enumerate(history_store):
-        if current.id == item.id:
+        if isinstance(current, HistoryItem) and current.id == item.id:
             history_store[index] = item
             return item
     history_store.insert(0, item)
@@ -803,7 +814,7 @@ def translate_status(task_id: str) -> dict:
         task["status"] = "done"
 
     for index, item in enumerate(history_store):
-        if item.task_id == task_id:
+        if isinstance(item, HistoryItem) and item.task_id == task_id:
             history_store[index] = item.model_copy(update={"status": task["status"], "updated_at": now_label()})
 
     return {
@@ -827,7 +838,7 @@ def cancel_translate(task_id: str) -> dict:
         raise HTTPException(status_code=404, detail="任务不存在")
     task["status"] = "cancelled"
     for index, item in enumerate(history_store):
-        if item.task_id == task_id:
+        if isinstance(item, HistoryItem) and item.task_id == task_id:
             history_store[index] = item.model_copy(update={"status": "cancelled", "updated_at": now_label()})
     return {"data": {"task_id": task_id, "status": "cancelled"}}
 
@@ -839,11 +850,12 @@ def list_history(
     task_type: Optional[str] = None,
     keyword: Optional[str] = None,
 ) -> dict:
-    items = history_store[:]
+    items = iter_history_items()
     if task_type:
         items = [item for item in items if item.task_type == task_type]
     if keyword:
-        items = [item for item in items if keyword.lower() in item.title.lower()]
+        keyword_lower = keyword.lower()
+        items = [item for item in items if keyword_lower in safe_history_title(item).lower()]
     start = (page - 1) * page_size
     end = start + page_size
     return {
@@ -858,7 +870,7 @@ def list_history(
 
 @app.get("/api/history/{history_id}")
 def get_history(history_id: str) -> dict:
-    for item in history_store:
+    for item in iter_history_items():
         if item.id == history_id:
             return {"data": item.model_dump()}
     raise HTTPException(status_code=404, detail="历史不存在")
@@ -867,7 +879,11 @@ def get_history(history_id: str) -> dict:
 @app.delete("/api/history/{history_id}")
 def delete_history(history_id: str) -> Response:
     global history_store
-    history_store = [item for item in history_store if item.id != history_id]
+    history_store = [
+        item
+        for item in history_store
+        if not isinstance(item, HistoryItem) or item.id != history_id
+    ]
     return Response(status_code=204)
 
 

@@ -1,12 +1,8 @@
-import { Alert, Button, Card, Select, Typography } from 'antd'
-import { ArrowRight, SendHorizonal } from 'lucide-react'
 import { toast } from 'sonner'
 
-import TextInput from '@/components/text-panel/text-input'
-import TextResult from '@/components/text-panel/text-result'
+import TextComposeMode from '@/components/text-panel/text-compose-mode'
+import TextWorkspaceMode from '@/components/text-panel/text-workspace-mode'
 import { useTextTranslation } from '@/hooks/use-text-translation'
-import { supportedLanguages } from '@/utils/format'
-import MenuDivider from 'antd/es/menu/MenuDivider'
 
 export default function TextPanel() {
   const {
@@ -24,8 +20,8 @@ export default function TextPanel() {
     retry,
   } = useTextTranslation()
 
-  const sameLanguage = (sourceLang === targetLang || detectedLang === targetLang) && sourceText.trim()
   const showWorkspaceLayout = status !== 'idle'
+  const sameLanguage = Boolean((sourceLang === targetLang || detectedLang === targetLang) && sourceText.trim())
 
   const handleSubmit = async () => {
     try {
@@ -37,112 +33,32 @@ export default function TextPanel() {
 
   return (
     <div className="panel-block">
-      <div className={`text-toolbar ${showWorkspaceLayout ? 'is-workspace' : 'is-compose'}`}>
-        <Select
-          size="large"
-          value={sourceLang}
-          className="text-toolbar-select"
-          onChange={(value) => setLanguages(value, targetLang)}
-          options={[
-            { label: '自动检测', value: 'auto' },
-            ...supportedLanguages.map((item) => ({ label: item.label, value: item.code })),
-          ]}
-        />
-        <div className="text-toolbar-arrow">
-          <ArrowRight size={18} />
-        </div>
-        <Select
-          size="large"
-          value={targetLang}
-          className="text-toolbar-select"
-          onChange={(value) => setLanguages(sourceLang, value)}
-          options={supportedLanguages.map((item) => ({ label: item.label, value: item.code }))}
-        />
-      </div>
-
-      {/* {sourceLang === 'auto' && detectedLang ? (
-        <div className={`text-detected-note ${showWorkspaceLayout ? 'is-left' : 'is-center'}`}>
-          <Typography.Text type="secondary">检测结果：{supportedLanguages.find((item) => item.code === detectedLang)?.label ?? detectedLang}</Typography.Text>
-        </div>
-      ) : null} */}
-
       {showWorkspaceLayout ? (
-        <div className="text-workspace-grid">
-          <section className="text-workspace-pane">
-            <div className="text-pane-header">
-              <div className="text-pane-label">
-                <span className="pane-dot" />
-                <Typography.Text strong>原文内容</Typography.Text>
-              </div>
-              <span className="text-pane-meta">{sourceText.length} 字符</span>
-            </div>
-
-            <div className="text-pane-body text-input-shell is-workspace">
-              <TextInput value={sourceText} onChange={setSourceText} disabled={status === 'loading'} />
-            </div>
-
-            {sameLanguage || error ? (
-              <div className="surface-alert-stack">
-                {sameLanguage ? <Alert type="warning" message="源语言与目标语言不能相同" showIcon /> : null}
-                {error ? <Alert type="error" message={error} showIcon /> : null}
-              </div>
-            ) : null}
-
-            <div className="text-pane-footer">
-              {status === 'failed' ? (
-                <Button size="large" onClick={() => void retry()}>
-                  重试
-                </Button>
-              ) : null}
-              <Button
-                type="primary"
-                size="large"
-                icon={<SendHorizonal size={16} />}
-                onClick={handleSubmit}
-                disabled={!canSubmit}
-                loading={status === 'loading'}
-                className="compose-submit"
-              >
-                开始翻译
-              </Button>
-            </div>
-          </section>
-
-          <section className="text-workspace-pane text-workspace-pane-result">
-            <TextResult translatedText={translatedText} status={status} />
-          </section>
-        </div>
+        <TextWorkspaceMode
+          sourceText={sourceText}
+          translatedText={translatedText}
+          sourceLang={sourceLang}
+          targetLang={targetLang}
+          error={error}
+          sameLanguage={sameLanguage}
+          canSubmit={canSubmit}
+          status={status}
+          onSourceTextChange={setSourceText}
+          onSourceLangChange={(value) => setLanguages(value, targetLang)}
+          onTargetLangChange={(value) => setLanguages(sourceLang, value)}
+          onSubmit={handleSubmit}
+          onRetry={() => retry()}
+        />
       ) : (
-        <div className="mode-panel-center">
-          <div className="mode-compose-shell text-compose-shell">
-            <div className="text-input-shell is-compose">
-              <TextInput value={sourceText} onChange={setSourceText} />
-            </div>
-
-            {sameLanguage || error ? (
-              <div className="surface-alert-stack">
-                {sameLanguage ? <Alert type="warning" message="源语言与目标语言不能相同" showIcon /> : null}
-                {error ? <Alert type="error" message={error} showIcon /> : null}
-              </div>
-            ) : null}
-
-            <div className="compose-footer">
-              <Typography.Text type="secondary">{sourceText.length} 字符</Typography.Text>
-              <div className="compose-actions">
-                <Button
-                  type="primary"
-                  size="large"
-                  icon={<SendHorizonal size={16} />}
-                  onClick={handleSubmit}
-                  disabled={!canSubmit}
-                  className="compose-submit"
-                >
-                  开始翻译
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <TextComposeMode
+          sourceText={sourceText}
+          sameLanguage={sameLanguage}
+          error={error}
+          canSubmit={canSubmit}
+          status={status}
+          onSourceTextChange={setSourceText}
+          onSubmit={handleSubmit}
+        />
       )}
     </div>
   )
